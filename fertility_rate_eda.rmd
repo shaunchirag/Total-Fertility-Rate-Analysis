@@ -1,0 +1,213 @@
+---
+title: "**Total Fertility Rate: Exploratory Data Analysis**"
+author: "*Shaun Chirag Lakra*"
+date: "08/09/2022"
+output: html_document
+---
+
+```{r}
+rm(list = ls())
+```
+
+### Loading the required libraires:
+```{r message=FALSE, warning=FALSE}
+library(ggthemes)
+library(tidyverse)
+library(skimr)
+```
+____________________________________________________________
+
+### **Definition of Total Fertility Rate: **
+#### *Total fertility rate represents the number of children that would be born to a woman if she were to live to the end of her childbearing years and bear children in accordance with age-specific fertility rates of the specified year.*
+
+#### Data sourced from: [click here](https://databank.worldbank.org/reports.aspx?source=2&series=SP.DYN.TFRT.IN&country=)
+
+#### Reading the csv file <fertility_rate.csv> in "df"
+```{r}
+df = read.csv("fertility_rate.csv")
+colnames(df)[3:23] = 2000:2020
+df %>% head() %>% knitr::kable()
+```
+
+### **We obtain a complete summary of the dataset**:
+```{r}
+skim(df)
+```
+
+
+#### Since we already have data on 217 countries, we can afford to remove missing values which are very less:
+```{r}
+df = na.omit(df)
+```
+#### We have our columns type as <dbl> (decimal) which we require. We can therefore proceed with our **EDA**
+____________________________________________________________
+## **Plotting the Average Total Fertility Rate from 2000: 2020**
+
+```{r}
+means = sapply(df[, 3:23], 2, FUN = mean)
+years = 2000:2020
+values = as.vector(means)
+mean_df = data.frame(years, values)
+
+mean_df %>%
+  ggplot(aes(years, values)) +
+  geom_line(size = 1, color = rgb(0.7, 0, 0.2), 
+            alpha = 0.6) +
+  labs(title = "Trend of Average Total Fertility Rate", 
+       subtitle = "2000 to 2020") +
+  xlab("Years") + ylab("Total Fertility Rate")
+```
+
+### We observe that there is a decreasing trend in Total Fertility Rate in the world from 2000 to 2020. 
+_____________________________________________
+## **Total Fertility Rate in India from 2000 to 2020:**
+```{r}
+df_ind = df %>%
+  filter(Country.Name == "India")
+df_ind_val = array()
+for(i in 1:21)
+{
+  df_ind_val[i] = df_ind[[i + 2]]
+}
+df_ind_ = data.frame(years, df_ind_val)
+df_ind_ %>%
+  ggplot(aes(years, df_ind_val)) + 
+  geom_line(size = 1, color = rgb(0, 0.4, 0.9), 
+            alpha = 0.6) +
+  labs(title = "Trend of Total Fertility Rate in India", 
+       subtitle = "2000 to 2020") +
+  xlab("Years") + ylab("Total Fertility Rate")
+```
+
+#### We notice a drastic decrease in total fertility rate in India from 3.3 to below 2.4 over the years in concern.
+__________________________________
+## **Total Fertility Rate Trend in Developed countries** such as:
+* #### The United States of America
+* #### Canada
+* #### The United Kingdom
+* #### Germany
+* #### Japan
+* #### Italy
+* #### France
+
+#### (Developed countries list obtained through Google)
+
+```{r}
+df_dev = df[df$Country.Name == "United States" |
+            df$Country.Name == "Canada" |
+            df$Country.Name == "United Kingdom" |
+            df$Country.Name == "Germany" |
+            df$Country.Name == "Japan" |
+            df$Country.Name == "Italy" |
+            df$Country.Name == "France",]
+colnames(df_dev)[3:23] = years
+dev_c = df_dev$Country.Name
+dev_countries = rep(dev_c, each = 21)
+years_rep = rep(2000:2020, times = 7)
+
+m = df_dev[, 3:23] %>% as.matrix() %>% t()
+fert = c(as.vector(m[, 1]), as.vector(m[, 2]),
+         as.vector(m[, 3]), as.vector(m[, 4]),
+         as.vector(m[, 5]), as.vector(m[, 6]),
+         as.vector(m[, 7]))
+
+df_dev_ = data.frame(dev_countries, years_rep,
+                     fert)
+df_dev_ %>%
+  ggplot(aes(years_rep, fert)) + 
+  geom_line(aes(col = dev_countries), size = 1) + 
+  labs(title = "Total Fertility Rate of Developed
+       Countries",
+       subtitle = "2000 to 2020",
+       col = "Country") + 
+  xlab("Years") +
+  ylab("Total Fertility Rate")
+```
+
+* #### All countries have fertility rates lower than 2.2.
+* #### We can observe that the United States has the highest fertility rate during the initial years but then decreases drastically. 
+* #### France has more or less consistent fertility rate over the time period. 
+* #### The UK shows an increasing and then decreasing trend and so does Canada.
+* #### Germany is the only country that shows an only increasing trend.
+* #### Lowest fertility rates are observed in Italy and Japan. 
+
+### **Some of the reasons as to why total fertility rate has been decreasing are:** (obtained from [here](https://www.weforum.org/agenda/2022/06/global-decline-of-fertility-rates-visualised/#:~:text=For%20the%20last%2070%20years,increased%20cost%20of%20raising%20children.))
+
+* #### Women empowerment in education and the workforce.
+* #### Lower Child mortality.
+* #### Increasing cost of raising children.
+
+## **Total Fertility Rate Trend in Underdeveloped Countries** such as (list obtained through Google):
+* #### Niger
+* #### Central African Republic
+* #### Chad
+* #### Burundi
+* #### South Sudan
+* #### Mali
+* #### Mozambique
+
+```{r}
+df_undev = df[df$Country.Name == "Niger" |
+            df$Country.Name == "Central African Republic" |
+            df$Country.Name == "Chad" |
+            df$Country.Name == "Burundi" |
+            df$Country.Name == "South Sudan" |
+            df$Country.Name == "Mali" |
+            df$Country.Name == "Mozambique",]
+colnames(df_undev)[3:23] = years
+dev_uc = df_undev$Country.Name
+dev_ucountries = rep(dev_uc, each = 21)
+years_rep = rep(2000:2020, times = 7)
+
+um = df_undev[, 3:23] %>% as.matrix() %>% t()
+ufert = c(as.vector(um[, 1]), as.vector(um[, 2]),
+         as.vector(um[, 3]), as.vector(um[, 4]),
+         as.vector(um[, 5]), as.vector(um[, 6]),
+         as.vector(um[, 7]))
+
+df_undev_ = data.frame(dev_ucountries, years_rep,
+                     ufert)
+df_undev_ %>%
+  ggplot(aes(years_rep, ufert)) + 
+  geom_line(aes(col = dev_ucountries), size = 1) + 
+  labs(title = "Total Fertility Rate of Underdeveloped 
+       Countries",
+       subtitle = "2000 to 2020",
+       col = "Country") + 
+  xlab("Years") +
+  ylab("Total Fertility Rate")
+```
+
+* #### All Countries have total fertility rate more than 4.5 in comparison to the developed countries that have less than 2.2.
+* #### All the countries also show decreasing trend. 
+* #### Niger has the highest total fertility rate (more than 7 in the initial years).
+
+#### We observe that fertility rate, though decreasing in both situations, have a vast difference between them. A lot of Underdeveloped countries have lack of sex education and oppression against women, which may explain such high fertility rates even in recent years. 
+_______________
+## **THE BIGGER PICTURE**:
+```{r message=FALSE, warning=FALSE}
+coord = map_data("world")
+df_2020 = df[, c(1, 23)]
+colnames(df_2020)[1] = "region"
+map_final = left_join(coord, df_2020, by = "region")
+
+map_final %>%
+  ggplot() +
+  geom_map(map = map_final, aes(long, lat, map_id = region,
+                                fill = map_final[,7])) +
+  labs(title = "Total Fertility Rate of the World", 
+       subtitle = "For the year 2020") +
+  scale_fill_gradient(name = "Total Fertility Rate",
+                      low = "#d6e7f2",
+                      high = "#0a3250") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        rect = element_blank())
+  
+```
+
+* #### The lighter shades of blue indicate lower total fertility rates and the darker shades of blue indicate higher total fertility rates.
+* #### Most of the darker shades are observed in the continent of Africa and this can be explained by our previous graph where we observed high total fertility rates in the underdeveloped regions of Africa. 
